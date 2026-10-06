@@ -2,7 +2,7 @@ library(quantmod)
 
 tickers <- c("NKG.VN", "HSG.VN", "HPG.VN")
 #==================================================
-#             Phần A
+#             Phần A – Chuẩn bị dữ liệu
 #==================================================
 # Sửa lại định dạng YYYY-MM-DD để R hiểu đúng từ ngày 01/01/2022
 begin <- as.Date("2022-01-01") 
@@ -52,7 +52,7 @@ all_log_ret <- merge(ret_NKG, ret_HSG, ret_HPG,vol_NKG,vol_HSG,vol_HPG)
 head(all_log_ret, 22)
 
 #=============================================
-#               Phần C 
+#       Phần C – Mối quan hệ giữa 2–3 biến
 #=============================================
 library(ggplot2)
 help(ggplot)
@@ -129,3 +129,61 @@ p3 <- ggplot(all_log_ret_df, aes(x = log_return_HSG,
   theme_minimal()
 p3
 ggsave("BieudoscatterlogHPGvsHSG.png",p3)
+
+#============================================
+# Phần D – Nâng cao: sử dụng facets & themes
+#============================================
+library(ggplot2)
+help("facet_wrap")
+library(scales)
+
+str(all_log_ret_df)
+# Tạo 3 bảng dữ liệu cho 3 mã 
+df_NKG <- data.frame(
+  Date = all_log_ret_df$Date,
+  ticker = "NKG",
+  log_return = all_log_ret_df$log_return_NKG
+)
+df_HSG <- data.frame(
+  Date = all_log_ret_df$Date,
+  ticker = "HSG",
+  log_return = all_log_ret_df$log_return_HSG
+)
+df_HPG <- data.frame(
+  Date = all_log_ret_df$Date,
+  ticker = "HPG",
+  log_return = all_log_ret_df$log_return_HPG
+)
+# Dùng rbind để ghép chồng 3 bảng thành một bảng với 3 cột date,ticker,log_return giống nhau
+returns_3_ticker <- rbind(df_NKG,df_HSG,df_HPG)
+returns_3_ticker
+str(returns_3_ticker)
+head(returns_3_ticker)
+tail(returns_3_ticker)
+
+# Vẽ biểu đồ returns theo thời gian cho từng mã dùng facet_wrap
+help("geom_hline")
+help("facet_wrap")
+help("scale_x_date")
+p4 <- ggplot(returns_3_ticker, aes(x=Date,y=log_return,color=ticker)) +
+  geom_line() +
+  geom_hline(yintercept = 0,linetype = "dashed", color="brown")+
+  facet_wrap(~ticker, ncol=1, scales = "free_y")+   #Chia 3 ô theo ticker (tự mở rộng theo trục y)
+  scale_x_date(date_breaks = "3 months",
+               date_labels = "%m-%Y",
+               expand = expansion(mult = c(0.01, 0.01)) # tach 1% cho 2 ben mep trai va phai
+  )+
+  scale_color_manual(values = c("NKG" = "steelblue","HSG" = "orange", "HPG" = "forestgreen"))+
+  labs(title = "Biến động tỷ suất sinh lợi theo thời gian của 3 mã",
+       subtitle = "So sánh chuỗi lợi suất theo tháng của 3 mã",
+       x = "Thời gian (tháng)",
+       y= "Tỷ suất sinh lợi")+
+  theme_minimal()+
+  theme(plot.title = element_text(face = "bold", size = 13, hjust = 0),  # chỉnh font chữ cho biểu đồ
+    strip.text = element_text(face = "bold", size = 11),   # chỉnh font chữ cho tiêu đề 3 mã
+    axis.text.x = element_text(angle = 45, hjust=1),   # quay nhãn trục x để không bị đè
+    panel.grid.minor = element_blank(),   # xóa lưới biểu đồ
+    legend.position = "none"    # Tắt chú thích màu bên phải
+  )
+p4
+ggsave("Bieu do so sanh return cua 3 ma theo thoi gian.png",p4)

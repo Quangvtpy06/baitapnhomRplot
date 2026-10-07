@@ -51,6 +51,103 @@ head(ret_HPG)
 all_log_ret <- merge(ret_NKG, ret_HSG, ret_HPG,vol_NKG,vol_HSG,vol_HPG)
 head(all_log_ret, 22)
 
+#==================================================
+#             Phần B
+#==================================================
+library(ggplot2)
+library(tidyr)
+#Tạo dataframe cho giá đóng cửa của 3 mã
+close_prices <- merge(Cl(NKG.VN), Cl(HSG.VN), Cl(HPG.VN))
+date = index(close_prices)
+df <- data.frame(date, close_prices)
+# Vẽ biểu đồ đường
+pic1 <- ggplot(df, aes(x = date)) +
+  geom_line(aes(y = NKG.VN.Close, color = "NKG"), size = 0.8) +
+  labs(title = "Biểu đồ giá đóng cửa NKG",
+       x = "Thời gian", 
+       y = "Giá đóng cửa",
+       color = "Mã cổ phiếu")+
+  theme_minimal()
+pic2 <- ggplot(df, aes(x = date)) +
+  geom_line(aes(y = HSG.VN.Close, color = "HSG"), size = 0.8) +
+  labs(title = "Biểu đồ giá đóng cửa  HSG",
+       x = "Thời gian", 
+       y = "Giá đóng cửa",
+       color = "Mã cổ phiếu")+
+  theme_minimal()
+pic3 <- ggplot(df, aes(x = date)) +
+  geom_line(aes(y = HPG.VN.Close, color = "HPG"), size = 0.8) +
+  labs(title = "Biểu đồ giá đóng cửa HPG",
+       x = "Thời gian", 
+       y = "Giá đóng cửa",
+       color = "Mã cổ phiếu")+
+  theme_minimal()
+
+ggsave("Gia_dong_cua_NGK.png",pic1)
+ggsave("Gia_dong_cua_HSG.png",pic2)
+ggsave("Gia_dong_cua_HPG.png",pic3)
+#Tạo dataframe cho log return
+df_ret <- data.frame(date = index(all_log_ret),
+                     NKG = coredata(all_log_ret$NKG_log_ret),
+                     HSG = coredata(all_log_ret$HSG_log_ret),
+                     HPG = coredata(all_log_ret$HPG_log_ret)) 
+#Vẽ histogram
+# 1. Vẽ biểu đồ NKG
+pic4 <- ggplot(df_ret, aes(x = NKG_log_ret)) +
+  geom_histogram(aes(y = after_stat(density)), fill = "black", color ="black", alpha = 0.7) +
+  geom_density(color = "red", size = 0.8) +
+  labs(title = "Histogram & Density Plot của Mã NKG", x = "Log Return", y = "Density") +
+  theme_minimal()
+
+# 2. Vẽ biểu đồ HSG
+pic5 <- ggplot(df_ret, aes(x = HSG_log_ret)) +
+  geom_histogram(aes(y = after_stat(density)),fill = "green",color ="black", alpha = 0.7) +
+  geom_density(color = "red", size = 0.8) +
+  labs(title = "Histogram & Density Plot của Mã HSG", x = "Log Return", y = "Density") +
+  theme_minimal()
+
+# 3. Vẽ biểu đồ HPG
+pic6 <- ggplot(df_ret, aes(x = HPG_log_ret)) +
+  geom_histogram(aes(y = after_stat(density)), fill = "pink",color ="black", alpha = 0.7) +
+  geom_density(color = "red", size = 0.8) +
+  labs(title = "Histogram & Density Plot của Mã HPG", x = "Log Return", y = "Density") +
+  theme_minimal()
+
+ggsave("Histogram&Density_cua_NKG.png",pic4)
+ggsave("Histogram&Density_cua_HSG.png",pic5)
+ggsave("Histogram&Density_cua_HPG.png",pic6)
+#Vẽ boxplot so sánh
+#Vẽ boxplot NKG - HSG
+pic7 <- ggplot(df_ret) +
+  geom_boxplot(aes(x = "NKG", y = NKG_log_ret, fill = "NKG"),outlier.color = "red") +
+  geom_boxplot(aes(x = "HSG", y = HSG_log_ret, fill = "HSG"),outlier.color = "red") +
+  labs(title = "So sánh Log Returns giữa NKG và HSG",
+       x = "Mã chứng khoán",
+       y = "Log Return hằng ngày",
+       fill = "Mã cổ phiếu") +
+  theme_minimal()
+#Vẽ boxplot NKG - HPG
+pic8 <- ggplot(df_ret) +
+  geom_boxplot(aes(x = "NKG", y = NKG_log_ret, fill = "NKG"),outlier.color = "red") +
+  geom_boxplot(aes(x = "HPG", y = HPG_log_ret, fill = "HPG"),outlier.color = "red") +
+  labs(title = "So sánh Log Returns giữa NKG và HPG",
+       x = "Mã chứng khoán",
+       y = "Log Return hằng ngày",
+       fill = "Mã cổ phiếu") +
+  theme_minimal()
+#Vẽ boxplot HPG - HSG
+pic9 <- ggplot(df_ret) +
+  geom_boxplot(aes(x = "HSG", y = HSG_log_ret, fill = "HSG"),outlier.color = "red") +
+  geom_boxplot(aes(x = "HSP", y = HPG_log_ret, fill = "HPG"),outlier.color = "red") +
+  labs(title = "So sánh Log Returns giữa HSG và HSP",
+       x = "Mã chứng khoán",
+       y = "Log Return hằng ngày",
+       fill = "Mã cổ phiếu") +
+  theme_minimal()
+ggsave("LogReturnNKG_HSG.png",pic7)
+ggsave("LogReturnNKG_HPG.png",pic8)
+ggsave("LogReturnHSG_HPG.png",pic9)
+
 #=============================================
 #       Phần C – Mối quan hệ giữa 2–3 biến
 #=============================================
